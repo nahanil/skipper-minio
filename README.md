@@ -45,6 +45,7 @@ req.file('avatar')
   });
 });
 ```
+You can also use the nifty [sails-hook-uploads](https://github.com/sailshq/sails-hook-uploads) for async/await-able upload processing in Sails v1.
 
 ### Only allow files of type x
 [mmmagic](https://www.npmjs.com/package/mmmagic) is used to detect the [MIME type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types) of incoming upload streams.
