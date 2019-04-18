@@ -33,26 +33,24 @@ module.exports = function SkipperMinio(options) {
   };
 
   adapter.ls = function(dirpath, cb) {
-    _getClient()
-      .listObjectsV2({
-        Bucket: options.bucket,
-        // Delimiter: '/',  « doesn't seem to make any meaningful difference
-        Prefix: (
+    var results = [];
+    var stream = _getClient()
+      .listObjectsV2(options.bucket,
+        (
           // Allow empty dirname (defaults to ''), & strip leading slashes
           // from dirname to form prefix
           (dirpath || '').replace(/^\/+/, '')
-        )
-        // FUTURE: maybe also check out "MaxKeys"..?
-      }, function(err, result) {
-        if (err){ return cb(err); }
+        ),
+        true
+      );
 
-        var formattedResults;
-        try {
-          formattedResults = _.pluck(result['Contents'], 'Key');
-        } catch (err) { return cb(err); }
-
-        return cb(undefined, formattedResults);
-      });//_∏_
+    stream.on('data', function(obj) {
+      if (obj && obj.name) {
+        results.push(obj.name);
+      }
+    });
+    stream.on('error', function(err) { cb(err); } );
+    stream.on('end', function() { cb(undefined, results); });
   };
 
   adapter.read = function(fd, cb) {
@@ -62,7 +60,14 @@ module.exports = function SkipperMinio(options) {
 
     _getClient()
       .getObject(options.bucket, fd.replace(/^\/+/), function(err, dataStream) {
-        cb(err, dataStream);
+        if (err) {
+          return cb(err);
+        }
+        var bufs = [];
+        dataStream.on('data', function(d){ bufs.push(d); });
+        dataStream.on('end', function() {
+          cb(null, Buffer.concat(bufs));
+        });
       });
   };
 
