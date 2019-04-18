@@ -23,6 +23,7 @@ var util = require('util');
  */
 module.exports = function buildDiskReceiverStream(minioClient, options, adapter) {
   options = options || {};
+  options.meta = options.meta || {};
   var log = options.log || function noOpLog(){};
 
   // if maxBytes is configed in "MB" ended string
@@ -32,7 +33,7 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     if (!_.isNull(_maxBytesRegResult)){
       options.maxBytes = _maxBytesRegResult[1] * 1024 * 1024;
     }
-  };
+  }
 
   _.defaults(options, {
 
@@ -58,7 +59,14 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     maxBytes: 15000000,
 
     // By default, upload files to `uploads` bucket
-    bucket: 'uploads'
+    bucket: 'uploads',
+
+    // Specify whitelist of allowed mime types for uploads (checks actual upload stream contents, not file extension)
+    // allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
+
+    // Specify a transformer function which returns some kind of pipeable stream to
+    // modify the upload on it's way to it's final destination
+    transformer: undefined,
   });
 
 
@@ -78,7 +86,6 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
   // from the Readable stream (Upstream) which is pumping filestreams
   // into this receiver.  (filename === `__newFile.filename`).
   receiver__._write = function onFile(__newFile, encoding, done) {
-
     // `skipperFd` is the file descriptor-- the unique identifier.
     // Often represents the location where file should be written.
     var skipperFd = __newFile.skipperFd || (_.isString(__newFile.fd)? __newFile.fd : undefined);
@@ -170,10 +177,9 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
         .pipe(outs__);
     }
 
-    minioClient.putObject(options.bucket, skipperFd, outs__, {/* TODO: Send meta/content type/ other meta?! */}, function(err) {
+    minioClient.putObject(options.bucket, skipperFd, outs__, options.meta, function(err) {
       done(err);
     });
-
     // });
 
   };

@@ -29,7 +29,8 @@
   "dependencies": {
     "@sailshq/lodash": "^3.10.2",
     "debug": "3.1.0",
-    "minio": "^7.0.5"
+    "minio": "^7.0.5",
+    "mmmagic": "^0.5.2"
   },
   "devDependencies": {
     "eslint": "3.19.0",

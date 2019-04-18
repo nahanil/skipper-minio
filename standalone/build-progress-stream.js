@@ -6,7 +6,8 @@
 var _ = require('@sailshq/lodash');
 var TransformStream = require('stream').Transform;
 
-
+const mmm = require("mmmagic");
+const Magic = require("mmmagic").Magic;
 
 /**
  * [exports description]
@@ -19,6 +20,7 @@ var TransformStream = require('stream').Transform;
 module.exports = function buildProgressStream (options, __newFile, receiver__, outs__, adapter) {
   options = options || {};
   var log = options.log || function noOpLog(){};
+  const magic = new Magic(mmm.MAGIC_MIME);
 
   // Generate a progress stream and unique id for this file
   // then pipe the bytes down to the outs___ stream
@@ -27,6 +29,21 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
   var guessedTotal = 0;
   var writtenSoFar = 0;
   var __progress__ = new TransformStream();
+
+  var _chunkBuffer = {
+    chunks: [],
+    length: 0,
+  };
+  var detectedMimeType = undefined;
+  var _splitMime = /^(.*); charset=(.*)$/;
+  function splitMime(s) {
+    const p = s.match(_splitMime);
+    return {
+      mime: p[1],
+      encoding: p[2],
+    };
+  }
+
   __progress__._transform = function(chunk, enctype, next) {
 
     // Update the guessedTotal to make % estimate
@@ -49,7 +66,43 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
       total: guessedTotal,
       percent: (writtenSoFar / guessedTotal) * 100 | 0
     });
-    next();
+
+    // Validate mime-type of uploaded file
+    if (options.allowedFileTypes && detectedMimeType === undefined) {
+      _chunkBuffer.chunks.push(chunk);
+      _chunkBuffer.length += chunk.length;
+
+      magic.detect(Buffer.concat(_chunkBuffer.chunks), (merr, detection) => {
+        if (merr) { /* return cb(err); */}
+        if (detectedMimeType !== undefined) { return next(); }
+
+        if (detection || _chunkBuffer.length >= 16384) {
+          detectedMimeType = detection ? splitMime(detection) : null;
+          this.emit('type', detectedMimeType);
+
+          if(options.allowedFileTypes.indexOf(detectedMimeType.mime) === -1) {
+            var err = new Error();
+            err.code = 'E_INVALID_FILE_TYPE';
+            err.name = 'Upload Error';
+            err.message = 'Uploaded file ' + __newFile.filename + ' of type ' + (detectedMimeType ? detectedMimeType.mime : 'UNKNOWN') + ' is not allowed';
+
+            //  Stop listening for progress events
+            __progress__.removeAllListeners('progress');
+            // Unpipe the progress stream, which feeds the disk stream, so we don't keep dumping to disk
+            process.nextTick(function() {
+              __progress__.unpipe();
+            });
+
+            // Clean up any files we've already written
+            gc(err);
+          }
+        }
+
+        return next();
+      });
+    } else {
+      return next();
+    }
   };
 
   // This event is fired when a single file stream emits a progress event.
@@ -126,17 +179,9 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
       process.nextTick(function() {
         __progress__.unpipe();
       });
+
       // Clean up any files we've already written
-      (function gc(err) {
-      // ! TODO: This probably won't work?
-      // Garbage-collects the bytes that were already written for this file.
-      // (called when a read or write error occurs)
-        log('************** Garbage collecting file `' + __newFile.filename + '` located @ ' + (__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)) + '...');
-        adapter.rm((__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)), function(gcErr) {
-          if (gcErr) { return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',[err].concat([gcErr])); }
-          return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',err);
-        });
-      })(err);
+      gc(err);
 
       return;
 
@@ -148,6 +193,16 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
     }
 
   });
+
+  function gc(err) {
+  // Garbage-collects the bytes that were already written for this file.
+  // (called when a read or write error occurs)
+    log('************** Garbage collecting file `' + __newFile.filename + '` located @ ' + (__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)) + '...');
+    adapter.rm((__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)), function(gcErr) {
+      if (gcErr) { return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',[err].concat([gcErr])); }
+      return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',err);
+    });
+  }
 
   return __progress__;
 };
