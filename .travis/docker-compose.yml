@@ -1,4 +1,4 @@
-version: '3.6'
+version: '3.3'
 
 services:
   minio1:
@@ -16,7 +16,7 @@ services:
     command: server /export
     environment:
      MINIO_ACCESS_KEY: ABC123
-     MINIO_SECRET_KEY: XYZ456
+     MINIO_SECRET_KEY: ABCDE12345
 
 volumes:
   api-deps:
