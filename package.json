@@ -1,0 +1,38 @@
+{
+  "name": "skipper-minio",
+  "version": "0.0.0",
+  "description": "Receive streaming file uploads to Minio.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "node ./node_modules/eslint/bin/eslint ./ --max-warnings=0",
+    "custom-tests": "node -e \"require('skipper-adapter-tests')({module: require('./')});\"",
+    "test": "npm run lint && npm run custom-tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:texh/skipper-minio.git"
+  },
+  "keywords": [
+    "skipper",
+    "minio",
+    "upload",
+    "s3",
+    "sails",
+    "express"
+  ],
+  "author": "Jarrod Linahan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/texh/skipper-minio/issues"
+  },
+  "homepage": "https://github.com/texh/skipper-minio",
+  "dependencies": {
+    "@sailshq/lodash": "^3.10.2",
+    "debug": "3.1.0",
+    "minio": "^7.0.5"
+  },
+  "devDependencies": {
+    "eslint": "3.19.0",
+    "skipper-adapter-tests": "^1.5.8"
+  }
+}
