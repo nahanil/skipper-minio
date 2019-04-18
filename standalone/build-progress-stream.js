@@ -6,8 +6,8 @@
 var _ = require('@sailshq/lodash');
 var TransformStream = require('stream').Transform;
 
-const mmm = require('mmmagic');
-const Magic = require('mmmagic').Magic;
+var mmm = require('mmmagic');
+var Magic = require('mmmagic').Magic;
 
 /**
  * [exports description]
@@ -20,7 +20,7 @@ const Magic = require('mmmagic').Magic;
 module.exports = function buildProgressStream (options, __newFile, receiver__, outs__, adapter) {
   options = options || {};
   var log = options.log || function noOpLog(){};
-  const magic = new Magic(mmm.MAGIC_MIME);
+  var magic = new Magic(mmm.MAGIC_MIME);
 
   // Generate a progress stream and unique id for this file
   // then pipe the bytes down to the outs___ stream
@@ -37,7 +37,7 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
   var detectedMimeType = undefined;
   var _splitMime = /^(.*); charset=(.*)$/;
   function splitMime(s) {
-    const p = s.match(_splitMime);
+    var p = s.match(_splitMime);
     return {
       mime: p[1],
       encoding: p[2],

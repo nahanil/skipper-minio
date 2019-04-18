@@ -153,7 +153,7 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     // Finally pipe the progress THROUGH the progress stream and optional 'transformer'
     // and out to disk.
     if (options.transformer && _.isFunction(options.transformer)) {
-      let transformer = options.transformer();
+      var transformer = options.transformer();
 
       // options.transformer should be a function that returns some kinda stream
       if (!(transformer instanceof require('stream').Stream)) {
