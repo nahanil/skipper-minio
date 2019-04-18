@@ -92,7 +92,6 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     if (!_.isString(skipperFd)) {
       return done(new Error('In skipper-minio adapter, write() method called with a stream that has an invalid `skipperFd`: '+skipperFd));
     }
-
     // Error reading from the file stream
     debug('binding error handler for incoming file in skipper-minio');
     __newFile.on('error', function(err) {
@@ -177,7 +176,7 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
         .pipe(outs__);
     }
 
-    minioClient.putObject(options.bucket, skipperFd, outs__, options.meta, function(err) {
+    minioClient.putObject(options.bucket, skipperFd.replace(/^\/+/, ''), outs__, options.meta, function(err) {
       done(err);
     });
     // });
