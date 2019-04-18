@@ -1,5 +1,5 @@
 # [<img title="skipper-minio - Minio storage adapter for Skipper" src="http://i.imgur.com/P6gptnI.png" width="200px" alt="skipper emblem - face of a ship's captain"/>](https://github.com/texh/skipper-minio)
-# Minio Storage Adapter
+# Minio/Amazon S3 Storage Adapter
 
 [![NPM version](https://badge.fury.io/js/skipper-minio.png)](http://badge.fury.io/js/skipper-minio) &nbsp; &nbsp;
 [![Build Status](https://travis-ci.org/texh/skipper-minio.svg?branch=master)](https://travis-ci.org/texh/skipper-minio)
@@ -19,6 +19,7 @@ $ npm install skipper-minio --save
 
 ## Usage
 
+### Using Minio
 In the route(s) / controller action(s) where you want to accept file uploads, do something like:
 
 ```javascript
@@ -46,6 +47,25 @@ req.file('avatar')
 });
 ```
 You can also use the nifty [sails-hook-uploads](https://github.com/sailshq/sails-hook-uploads) for async/await-able upload processing in Sails v1.
+
+### Using Amazon S3
+```javascript
+req.file('avatar')
+.upload({
+  adapter: require('skipper-minio'),
+  bucket: 'avatars',
+  endPoint: 's3.amazon.com',
+  accessKey: 'ABCDEFGH123456789',
+  secretKey: 'ABCDEFGH123456789ABCDEFGH123456789'
+}, function whenDone(err, uploadedFiles) {
+  if (err) return res.negotiate(err);
+  else return res.ok({
+    files: uploadedFiles,
+    textParams: req.params.all()
+  });
+});
+```
+
 
 ### Only allow files of type x
 [mmmagic](https://www.npmjs.com/package/mmmagic) is used to detect the [MIME type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types) of incoming upload streams.
