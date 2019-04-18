@@ -15,9 +15,10 @@ services:
 
 install:
   - cp .travis/docker-compose.yml .
-	- docker network create dev
+  - docker network create dev
   - docker-compose build
   - docker-compose up -d
+  - npm install
 
 after_script:
   - docker-compose stop
