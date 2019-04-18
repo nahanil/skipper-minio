@@ -1,7 +1,7 @@
 {
   "name": "skipper-minio",
   "version": "0.0.1",
-  "description": "Receive streaming file uploads to Minio.",
+  "description": "Receive streaming file uploads to Minio/Amazon S3.",
   "main": "index.js",
   "scripts": {
     "lint": "node ./node_modules/eslint/bin/eslint ./ --max-warnings=0",
