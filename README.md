@@ -25,15 +25,19 @@ In the route(s) / controller action(s) where you want to accept file uploads, do
 req.file('avatar')
 .upload({
   // ...options here...
+  // These *could* be better off in `sails.config.uploads`
+  adapter: require('skipper-minio'),
   bucket: 'avatars',
   endPoint: 'minio.mydomain.com',
   port: 9000,
   accessKey: 'ABCDEFGH123456789',
   secretKey: 'ABCDEFGH123456789ABCDEFGH123456789',
   useSSL: false,
-  allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
   maxBytes: 1024 * 1024,
-},function whenDone(err, uploadedFiles) {
+
+  allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
+  transformer: () => { return someDataModifyingPipeableToCropAvatars }
+}, function whenDone(err, uploadedFiles) {
   if (err) return res.negotiate(err);
   else return res.ok({
     files: uploadedFiles,
