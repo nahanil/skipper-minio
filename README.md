@@ -54,7 +54,7 @@ req.file('avatar')
 .upload({
   adapter: require('skipper-minio'),
   bucket: 'avatars',
-  endPoint: 's3.amazon.com',
+  endPoint: 's3.amazonaws.com',
   accessKey: 'ABCDEFGH123456789',
   secretKey: 'ABCDEFGH123456789ABCDEFGH123456789'
 }, function whenDone(err, uploadedFiles) {
