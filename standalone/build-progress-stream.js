@@ -66,6 +66,7 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
       total: guessedTotal,
       percent: (writtenSoFar / guessedTotal) * 100 | 0
     });
+    __newFile.byteCount = writtenSoFar;
 
     // Validate mime-type of uploaded file
     if (options.allowedFileTypes && detectedMimeType === undefined) {
