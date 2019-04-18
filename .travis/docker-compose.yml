@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+  minio1:
+    image: minio/minio:RELEASE.2018-07-31T02-11-47Z
+    restart: always
+    # volumes:
+    #   - minio1-data:/export
+    ports:
+      - "9000:9000"
+    expose:
+      - 9000
+    networks:
+      - dev
+    # command: server http://tasks.minio1/export
+    command: server /export
+    environment:
+     MINIO_ACCESS_KEY: ABC123
+     MINIO_SECRET_KEY: XYZ456
+
+volumes:
+  api-deps:
+  # minio1-data:
+
+networks:
+  dev:
+    external: true
