@@ -6,8 +6,8 @@
 var _ = require('@sailshq/lodash');
 var TransformStream = require('stream').Transform;
 
-const mmm = require("mmmagic");
-const Magic = require("mmmagic").Magic;
+const mmm = require('mmmagic');
+const Magic = require('mmmagic').Magic;
 
 /**
  * [exports description]
