@@ -67,7 +67,7 @@ module.exports = function SkipperMinio(options) {
   };
 
   adapter.receive = function(opts) {
-    return buildMinioReceiverStream(_getClient(), _.defaults(opts, options), adapter);
+    return buildMinioReceiverStream(_getClient(), _.defaults(opts || {}, options), adapter);
   };
 
   return adapter;
