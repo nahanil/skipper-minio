@@ -73,7 +73,7 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
 
       // flush chunk buffer
       actuallyRegisterUpstreamPipes(null);
-      for (let i = 0; i < _detectBuffer.chunks.length; i++) {
+      for (var i = 0; i < _detectBuffer.chunks.length; i++) {
         __detect__.push(_detectBuffer.chunks[i]);
       }
       _detectBuffer.chunks.length = 0;
