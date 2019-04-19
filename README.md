@@ -54,7 +54,6 @@ req.file('avatar')
 .upload({
   adapter: require('skipper-minio'),
   bucket: 'avatars',
-  endPoint: 's3.amazonaws.com',
   accessKey: 'ABCDEFGH123456789',
   secretKey: 'ABCDEFGH123456789ABCDEFGH123456789'
 }, function whenDone(err, uploadedFiles) {
@@ -65,7 +64,6 @@ req.file('avatar')
   });
 });
 ```
-
 
 ### Only allow files of type x
 [mmmagic](https://www.npmjs.com/package/mmmagic) is used to detect the [MIME type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types) of incoming upload streams.
@@ -84,10 +82,13 @@ req.file('avatar')
 .upload({
   // Ensure the resulting file always has a `.jpg` extension regardless of the filename of the original upload
   saveAs: (__incomingFileStream, cb) => { return cb(null, uuid() + '.jpg'); },
+
   // Specify allowed input file types
   allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
+
   // Uploaded files will be piped through the `transformer`s returned value before being sent to minio
-  transformer: () => {
+  // It will be passed a single argument - the detected MIME type of the incoming stream, or `null`
+  transformer: (detectedMimeType) => {
     return sharp()
       .flatten({ background: {r: 255, g: 255, b: 255, alpha: 1} })
       .resize({
@@ -104,6 +105,10 @@ req.file('avatar')
   });
 });
 ```
+
+## TODO
+- Run tests against ~[minio](https://hub.docker.com/r/minio/minio)~ &~ [s3mock](https://hub.docker.com/r/adobe/s3mock/)
+
 
 ## Contribute
 

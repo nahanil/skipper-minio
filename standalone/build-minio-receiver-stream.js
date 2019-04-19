@@ -7,15 +7,15 @@ var WritableStream = require('stream').Writable;
 var Transform = require('stream').Transform;
 var _ = require('@sailshq/lodash');
 var buildProgressStream = require('./build-progress-stream');
+var buildMimeInterceptStream = require('./build-mime-intercept-stream');
 var debug = require('debug')('skipper-minio');
 var util = require('util');
-
 
 /**
  * A simple receiver for Skipper that writes Upstreams to
  * the configured minio instance.
  *
- * (TODO: CURRENTLY DOESN'T) Includes a garbage-collection mechanism for failed
+ * Includes a garbage-collection mechanism for failed
  * uploads.
  *
  * @param  {Object} options
@@ -57,6 +57,9 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     // Upload limit (in bytes)
     // defaults to ~15MB
     maxBytes: 15000000,
+
+    // Default to use AWS S3 so that those guys can enjoy super simple config
+    endPoint: 's3.amazonaws.com',
 
     // By default, upload files to `uploads` bucket
     bucket: 'uploads',
@@ -149,38 +152,42 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
       receiver__.emit('error', newError);
     });
 
+    // TOO MUCH probable happens right here...
+    var __detect__ = buildMimeInterceptStream(options, __newFile, outs__, adapter, actuallyRegisterUpstreamPipes);
+
     // Finally pipe the progress THROUGH the progress stream and optional 'transformer'
     // and out to disk.
-    if (options.transformer && _.isFunction(options.transformer)) {
-      var transformer = options.transformer();
+    __newFile
+    .pipe(__progress__)
+    .pipe(__detect__);
 
-      // options.transformer should be a function that returns some kinda stream
-      if (!(transformer instanceof require('stream').Stream)) {
-        var newError = new Error('Invalid custom "transformer" stream passed to adapter while uploading file `' + skipperFd);
-        receiver__.emit('error', newError);
-        return;
+    // The (optional) transformer & actual minio piping won't happen until after __detect__
+    // has (at least tried to) detected the mime type of the incoming stream
+    function actuallyRegisterUpstreamPipes () {
+      var meta = options.meta || {};
+      // This *could* overwrite userland meta options, but does mmmagic know better?..
+      if (__newFile.mimeType) {
+        meta['Content-Type'] = __newFile.mimeType;
       }
 
-      transformer.on('error', function(err) {
-        var newError = new Error('Error reported from the custom "transformer" stream while uploading file `' + skipperFd +': ' + util.inspect(err, {depth: 5}));
-        receiver__.emit('error', newError);
-      });
+      var xformer;
+      if (_.isFunction(options.transformer)) {
+        xformer = options.transformer(__newFile.mimeType);
+      }
 
-      __newFile
-        .pipe(__progress__)
-        .pipe(transformer)
-        .pipe(outs__);
-    } else {
-      __newFile
-        .pipe(__progress__)
-        .pipe(outs__);
+      if (xformer) {
+        __detect__.pipe(xformer)
+          .pipe(outs__);
+      } else {
+        __detect__.pipe(outs__);
+      }
+
+      minioClient.putObject(options.bucket, skipperFd.replace(/^\/+/, ''), outs__, null, meta, function(err) {
+        done(err);
+      });
     }
 
-    minioClient.putObject(options.bucket, skipperFd.replace(/^\/+/, ''), outs__, options.meta, function(err) {
-      done(err);
-    });
     // });
-
   };
 
   return receiver__;
