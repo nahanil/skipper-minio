@@ -1,6 +1,6 @@
 {
   "name": "skipper-minio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Receive streaming file uploads to Minio/Amazon S3.",
   "main": "index.js",
   "scripts": {
