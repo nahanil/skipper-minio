@@ -25,13 +25,6 @@ module.exports = function SkipperMinio(options) {
   }
 
   var adapter = {};
-  adapter.rm = function(fd, cb) {
-    _getClient()
-      .removeObject(options.bucket, fd.replace(/^\/+/, ''), function(err) {
-        return cb(err);
-      });//_∏_
-  };
-
   adapter.ls = function(dirpath, cb) {
     var results = [];
     var stream = _getClient()
@@ -51,6 +44,34 @@ module.exports = function SkipperMinio(options) {
     });
     stream.on('error', function(err) { cb(err); } );
     stream.on('end', function() { cb(undefined, results); });
+  };
+
+  adapter.rm = function(fd, cb) {
+    var workingFd = fd.replace(/^\/+/, '');
+    var client = _getClient();
+    cb = cb || function noop() {};
+
+    // Allow recursively deleting a 'folder' with a wildcard (fd = 'something/*')
+    if (workingFd.substr(-2) === '/*') {
+      adapter.ls(workingFd.substr(0, workingFd.length - 2), (err, files) => {
+        if (err) { return cb(err); };
+        if (!files.length) { return cb(); }
+
+        var complete = 0;
+        for (var i = 0; i < files.length; i++) {
+          arguments.callee(files[i], () => {
+            complete++;
+            if (complete === files.length) {
+              return cb();
+            }
+          });
+        }
+      });
+    } else {
+      client.removeObject(options.bucket, workingFd, function(err) {
+        return cb(err);
+      });//_∏_
+    }
   };
 
   adapter.read = function(fd, cb) {
