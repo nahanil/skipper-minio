@@ -106,6 +106,43 @@ req.file('avatar')
 });
 ```
 
+### File extension normalisation
+If you specify the `runSaveAsAfterMimeDetection` boolean option then the `saveAs` method will be called once again just before uploading the file to minio.
+This _could_ allow you to normalise the final filename of an upload. The use case that prompted this was
+- A user uploads a jpeg file with a `.png` extension
+- A user uploads a jpeg file with a `.JPEG` extension, but other moving parts of the system are looking for and will only work on files with `.jpg` file extension
+If this option is `true` then your `saveAs` method _will be run multiple times_.
+
+You probably shouldn't use this (it's more for my own reference when I come back in 12 months and wonder wtf is going on) but hey, check out our `config/uploads.js`
+```
+module.exports.uploads = {
+	// ...
+  allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
+  fileTypeMap: {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+  },
+
+  runSaveAsAfterMimeDetection: true,
+  saveAs: function saveUploadAs(__file, cb) {
+    const uuid = require('uuid/v4')
+    const extension = (sails.config.uploads.fileTypeMap[__file.mimeType] || __file.filename.split('.').pop() || '.upload').toLowerCase()
+
+    // Because this saveAs method is gonna run probably twice, we attach  the generated uuid to __file to save CPU cycles the next time we run
+    let filename
+    if (__file.__userlandFileName) {
+      filename = __file.__userlandFileName
+    } else {
+      filename = uuid()
+      __file.__userlandFileName = filename
+    }
+
+    return cb(null, filename + extension)
+  }
+}
+```
+
 ## TODO
 - Run tests against ~[minio](https://hub.docker.com/r/minio/minio)~ &~ [s3mock](https://hub.docker.com/r/adobe/s3mock/)
 

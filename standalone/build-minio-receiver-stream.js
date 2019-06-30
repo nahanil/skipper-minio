@@ -44,6 +44,13 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     //   return cb(null, UUIDGenerator.v4() + path.extname(__newFile.filename));
     // },
 
+    // This will __re run__ the saveAs method just before uploading the file to minio
+    // if it's set to true and saveAs is a function.
+    // Why? Because we should be able to normalise our final filenames based on the _actual_ mime type of a file,
+    //      the current requirement being that all jpeg files should have a '.jpg' extension, never '.jpeg'
+    // and because inevitably some dickhead will upload a gif with a '.jpeg' extension and things will get weird.
+    runSaveAsAfterMimeDetection: false,
+
     // Bind a progress event handler, e.g.:
     // function (milestone) {
     //   milestone.id;
@@ -182,11 +189,25 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
         __detect__.pipe(outs__);
       }
 
-      minioClient.putObject(options.bucket, skipperFd.replace(/^\/+/, ''), outs__, null, meta, function(err) {
-        done(err);
-      });
-    }
+      function actuallyPutObject(finalDestination) {
+        minioClient.putObject(options.bucket, finalDestination, outs__, null, meta, function(err) {
+          done(err);
+        });
+      }
 
+      if (options.runSaveAsAfterMimeDetection && _.isFunction(options.saveAs)) {
+        options.saveAs(__newFile, function afterHaveMimeSaveAs(err, finalFd) {
+          // If we receive an error then just use the original file name
+          if (err) {
+            return actuallyPutObject(skipperFd.replace(/^\/+/, ''));
+          }
+          __newFile.skipperFd = finalFd;
+          actuallyPutObject(finalFd);
+        });
+      } else {
+        actuallyPutObject(skipperFd.replace(/^\/+/, ''));
+      }
+    }
     // });
   };
 
