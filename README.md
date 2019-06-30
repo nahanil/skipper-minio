@@ -111,12 +111,13 @@ If you specify the `runSaveAsAfterMimeDetection` boolean option then the `saveAs
 This _could_ allow you to normalise the final filename of an upload. The use case that prompted this was
 - A user uploads a jpeg file with a `.png` extension
 - A user uploads a jpeg file with a `.JPEG` extension, but other moving parts of the system are looking for and will only work on files with `.jpg` file extension
+
 If this option is `true` then your `saveAs` method _will be run multiple times_.
 
 You probably shouldn't use this (it's more for my own reference when I come back in 12 months and wonder wtf is going on) but hey, check out our `config/uploads.js`
-```
+```js
 module.exports.uploads = {
-	// ...
+  // ...
   allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
   fileTypeMap: {
     'image/jpeg': '.jpg',
