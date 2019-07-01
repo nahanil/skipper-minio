@@ -177,14 +177,17 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
         meta['Content-Type'] = __newFile.mimeType;
       }
 
-      var xformer;
-      if (_.isFunction(options.transformer)) {
-        xformer = options.transformer(__newFile.mimeType);
-      }
+      if (options.transformer) {
+        if (!_.isArray(options.transformer)) {
+          options.transformer = [options.transformer];
+        }
 
-      if (xformer) {
-        __detect__.pipe(xformer)
-          .pipe(outs__);
+        var last = __detect__;
+        for (var xformGetter of options.transformer) {
+          var xformer = xformGetter(__newFile.mimeType, __newFile);
+          last = last.pipe(xformer);
+        }
+        last.pipe(outs__);
       } else {
         __detect__.pipe(outs__);
       }

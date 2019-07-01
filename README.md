@@ -15,7 +15,8 @@ $ npm install skipper-minio --save
 
 > If you're using this module outside of Sails (e.g. Express or a vanilla Node.js server), make sure you have skipper itself [installed as your body parser](https://sailsjs.com/documentation/concepts/middleware?q=adding-or-overriding-http-middleware).
 
-
+**Buyer Beware**
+I probably would not recommend using this package in production applications just yet, and I'm sorry I didn't namespace the package from the beginning. That said it ___seems___ to do what it says on the box, but streams are still black magic as far as I'm concerned.
 
 ## Usage
 
@@ -71,7 +72,7 @@ req.file('avatar')
 You're able to restrict the types of files that will be accepted by passing an array of MIME types to the `allowedFileTypes` setting.
 
 ### Transforming an incoming upload
-You're able to specify a `transformer` method to modify the incoming upload.
+You're able to specify a `transformer` method (or array of methods) to modify the incoming upload.
 
 The following example accepts jpeg/png/gif uploads which it crops & resizes and stores as a jpeg using [sharp](https://www.npmjs.com/package/sharp).
 ```js
