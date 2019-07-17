@@ -1,6 +1,6 @@
 {
   "name": "skipper-minio",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Receive streaming file uploads to Minio/Amazon S3.",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:texh/skipper-minio.git"
+    "url": "git@github.com:nahanil/skipper-minio.git"
   },
   "keywords": [
     "skipper",
@@ -23,9 +23,9 @@
   "author": "Jarrod Linahan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/texh/skipper-minio/issues"
+    "url": "https://github.com/nahanil/skipper-minio/issues"
   },
-  "homepage": "https://github.com/texh/skipper-minio",
+  "homepage": "https://github.com/nahanil/skipper-minio",
   "dependencies": {
     "@sailshq/lodash": "^3.10.2",
     "debug": "3.1.0",
@@ -33,7 +33,7 @@
     "mmmagic": "^0.5.2"
   },
   "devDependencies": {
-    "eslint": "3.19.0",
+    "eslint": "4.18.2",
     "skipper-adapter-tests": "^1.5.8"
   }
 }
