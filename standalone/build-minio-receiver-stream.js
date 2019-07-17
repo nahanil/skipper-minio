@@ -165,8 +165,8 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     // Finally pipe the progress THROUGH the progress stream and optional 'transformer'
     // and out to disk.
     __newFile
-    .pipe(__progress__)
-    .pipe(__detect__);
+      .pipe(__progress__)
+      .pipe(__detect__);
 
     // The (optional) transformer & actual minio piping won't happen until after __detect__
     // has (at least tried to) detected the mime type of the incoming stream
