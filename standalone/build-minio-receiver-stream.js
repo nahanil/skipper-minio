@@ -187,8 +187,6 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
           var xformer = xformGetter(__newFile.mimeType, __newFile);
           if (xformer && xformer.pipe) {
             last = last.pipe(xformer);
-          } else {
-            console.warn('Invalid/missing `transformer` passed to skipper minio! Ignoring it and continuing anyway');
           }
         }
         last.pipe(outs__);
