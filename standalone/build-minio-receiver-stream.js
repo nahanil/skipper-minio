@@ -186,6 +186,13 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
         for (var xformGetter of options.transformer) {
           var xformer = xformGetter(__newFile.mimeType, __newFile);
           if (xformer && xformer.pipe) {
+            xformer.on('error', function (err) {
+              var newError = new Error('Error running transformer for file `' + skipperFd + '`: ' + util.inspect(err, {depth: 5}));
+              newError.code = 'E_TRANSFORM_FAILED';
+              newError.name = 'Transform pipe failure';
+              newError.orig = err;
+              receiver__.emit('error', newError);
+            });
             last = last.pipe(xformer);
           }
         }
