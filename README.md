@@ -1,7 +1,7 @@
 # [<img title="skipper-minio - Minio storage adapter for Skipper" src="http://i.imgur.com/P6gptnI.png" width="200px" alt="skipper emblem - face of a ship's captain"/>](https://github.com/nahanil/skipper-minio)
 # Minio/Amazon S3 Storage Adapter
 
-[![NPM version](https://badge.fury.io/js/skipper-minio.png)](http://badge.fury.io/js/skipper-minio) &nbsp; &nbsp;
+[![NPM version](https://badge.fury.io/js/skipper-minio.svg)](http://badge.fury.io/js/skipper-minio)
 [![Build Status](https://travis-ci.org/nahanil/skipper-minio.svg?branch=master)](https://travis-ci.org/nahanil/skipper-minio)
 
 Minio adapter for receiving [upstreams](https://github.com/balderdashy/skipper#what-are-upstreams). Particularly useful for streaming multipart file uploads from the [Skipper](github.com/balderdashy/skipper) body parser.
