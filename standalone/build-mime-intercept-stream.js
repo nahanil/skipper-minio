@@ -4,9 +4,8 @@
  */
 
 var TransformStream = require('stream').Transform;
-var mmm = require('mmmagic');
-var Magic = require('mmmagic').Magic;
 var gc = require('./gc');
+var fileType = require('file-type');
 
 /**
  * [exports description]
@@ -19,7 +18,6 @@ var gc = require('./gc');
 module.exports = function buildMimeInterceptStream (options, __newFile, outs__, adapter, actuallyRegisterUpstreamPipes) {
   options = options || {};
   // var log = options.log || function noOpLog(){};
-  var magic = new Magic(mmm.MAGIC_MIME_TYPE);
 
   var wasProbablyGivenAnEmptyFile = false;
   var detectionInProgress = 0;
@@ -52,9 +50,26 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
     _detectBuffer.chunks.push(chunk);
     _detectBuffer.length += chunk.length;
 
+    // try to detect
+    const detection = fileType.fromBuffer(Buffer.concat(_detectBuffer.chunks)) // (Buffer.concat(_detectBuffer.chunks));
+    // if type known or limit exceeded, emit
+    // (file-type (no longer) guarantees that it needs at most 'minimumBytes' bytes)
+    const MIN_BYTES = 4100
+    if (detection || _detectBuffer.length >= MIN_BYTES) {
+      // this._type = detection;
+      this.emit("type", this.type);
+      // this._typeEmitted = true;
+      onMimeDetected(detection);
+      proceed();
+    } else {
+      _this.push(chunk);
+      return proceed();
+    }
+
+    /*
     magic.detect(Buffer.concat(_detectBuffer.chunks), (merr, detection) => {
       detectionInProgress--;
-      if (merr) { /* return cb(err); */}
+      if (merr) { /* return cb(err); * /}
       if (detectedMimeType !== undefined) {
         _this.push(chunk);
         return proceed();
@@ -63,6 +78,7 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
       onMimeDetected(detection);
       proceed();
     });
+    */
   };
 
   function onMimeDetected (detection) {
