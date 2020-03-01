@@ -5,7 +5,7 @@
 
 var TransformStream = require('stream').Transform;
 var gc = require('./gc');
-var fileType = require('file-type');
+var FileType = require('file-type')
 
 /**
  * [exports description]
@@ -22,6 +22,7 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
   var wasProbablyGivenAnEmptyFile = false;
   var detectionInProgress = 0;
   var detectedMimeType = undefined;
+  var emitted = false
   var _detectBuffer = {
     chunks: [],
     length: 0,
@@ -50,41 +51,26 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
     _detectBuffer.chunks.push(chunk);
     _detectBuffer.length += chunk.length;
 
-    // try to detect
-    const detection = fileType.fromBuffer(Buffer.concat(_detectBuffer.chunks)) // (Buffer.concat(_detectBuffer.chunks));
-    // if type known or limit exceeded, emit
-    // (file-type (no longer) guarantees that it needs at most 'minimumBytes' bytes)
-    const MIN_BYTES = 4100
-    if (detection || _detectBuffer.length >= MIN_BYTES) {
-      // this._type = detection;
-      this.emit("type", this.type);
-      // this._typeEmitted = true;
-      onMimeDetected(detection);
-      proceed();
-    } else {
-      _this.push(chunk);
-      return proceed();
-    }
+    FileType.fromBuffer(Buffer.concat(_detectBuffer.chunks))
+      .then(function (detection) {
+        detectionInProgress--;
 
-    /*
-    magic.detect(Buffer.concat(_detectBuffer.chunks), (merr, detection) => {
-      detectionInProgress--;
-      if (merr) { /* return cb(err); * /}
-      if (detectedMimeType !== undefined) {
-        _this.push(chunk);
-        return proceed();
-      }
+        if (detectedMimeType !== undefined) {
+          _this.push(chunk);
+          return proceed();
+        }
 
-      onMimeDetected(detection);
-      proceed();
-    });
-    */
+        onMimeDetected(detection ? detection.mime : undefined);
+        proceed();
+      });
   };
 
   function onMimeDetected (detection) {
+    if (emitted) { return }
     if (wasProbablyGivenAnEmptyFile || detection || _detectBuffer.length >= 16384) {
       detectedMimeType = detection ? detection : null;
       __detect__.emit('type', detectedMimeType);
+      emitted = true
       __newFile.mimeType = detectedMimeType;
 
       // flush chunk buffer
