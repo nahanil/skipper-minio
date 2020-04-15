@@ -137,8 +137,21 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
       receiver__.emit('writefile', __newFile);
       // done();
     });
+
+    // More warty smells.
+    // https://www.youtube.com/watch?v=SETnK2ny1R0
+    var alreadyDone = false;
+    function doneOnce (err) {
+      if (!alreadyDone) {
+        alreadyDone = true;
+        return done(err);
+      }
+    }
     outs__.on('E_EXCEEDS_UPLOAD_LIMIT', function (err) {
-      done(err);
+      doneOnce(err);
+    });
+    outs__.on('E_INVALID_FILE_TYPE', function (err) {
+      doneOnce(err);
     });
 
     // Create another stream that simply keeps track of the progress of the file stream and emits `progress` events

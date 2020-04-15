@@ -4,9 +4,8 @@
  */
 
 var TransformStream = require('stream').Transform;
-var mmm = require('mmmagic');
-var Magic = require('mmmagic').Magic;
 var gc = require('./gc');
+var FileType = require('file-type');
 
 /**
  * [exports description]
@@ -19,11 +18,11 @@ var gc = require('./gc');
 module.exports = function buildMimeInterceptStream (options, __newFile, outs__, adapter, actuallyRegisterUpstreamPipes) {
   options = options || {};
   // var log = options.log || function noOpLog(){};
-  var magic = new Magic(mmm.MAGIC_MIME_TYPE);
 
   var wasProbablyGivenAnEmptyFile = false;
   var detectionInProgress = 0;
   var detectedMimeType = undefined;
+  var emitted = false;
   var _detectBuffer = {
     chunks: [],
     length: 0,
@@ -52,23 +51,26 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
     _detectBuffer.chunks.push(chunk);
     _detectBuffer.length += chunk.length;
 
-    magic.detect(Buffer.concat(_detectBuffer.chunks), (merr, detection) => {
-      detectionInProgress--;
-      if (merr) { /* return cb(err); */}
-      if (detectedMimeType !== undefined) {
-        _this.push(chunk);
-        return proceed();
-      }
+    FileType.fromBuffer(Buffer.concat(_detectBuffer.chunks))
+      .then(function (detection) {
+        detectionInProgress--;
 
-      onMimeDetected(detection);
-      proceed();
-    });
+        if (detectedMimeType !== undefined) {
+          _this.push(chunk);
+          return proceed();
+        }
+
+        onMimeDetected(detection ? detection.mime : undefined);
+        proceed();
+      });
   };
 
   function onMimeDetected (detection) {
+    if (emitted) { return; }
     if (wasProbablyGivenAnEmptyFile || detection || _detectBuffer.length >= 16384) {
       detectedMimeType = detection ? detection : null;
       __detect__.emit('type', detectedMimeType);
+      emitted = true;
       __newFile.mimeType = detectedMimeType;
 
       // flush chunk buffer
@@ -90,13 +92,11 @@ module.exports = function buildMimeInterceptStream (options, __newFile, outs__, 
         // __progress__.removeAllListeners('progress');
         // Unpipe the progress stream, which feeds the disk stream, so we don't keep dumping to disk
         process.nextTick(function() {
-          // __progress__.unpipe();
           __detect__.unpipe();
         });
 
         // Clean up any files we've already written
         gc(options, adapter, err, __newFile, outs__);
-        // TODO: Should we be bailing here without `proceed`ing??
       }
     }
   }

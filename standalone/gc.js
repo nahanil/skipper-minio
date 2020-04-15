@@ -6,7 +6,7 @@ module.exports = function gc(options, adapter, err, __newFile, outs__) {
   // (called when a read or write error occurs)
   log('************** Garbage collecting file `' + __newFile.filename + '` located @ ' + (__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)) + '...');
   adapter.rm((__newFile.skipperFd || (_.isString(__newFile.fd) ? __newFile.fd : undefined)), function(gcErr) {
-    if (gcErr) { return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',[err].concat([gcErr])); }
-    return outs__.emit('E_EXCEEDS_UPLOAD_LIMIT',err);
+    if (gcErr) { return outs__.emit(err.code,[err].concat([gcErr])); }
+    return outs__.emit(err.code,err);
   });
 };
