@@ -138,6 +138,8 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
       // done();
     });
 
+    // More warty smells.
+    // https://www.youtube.com/watch?v=SETnK2ny1R0
     var alreadyDone = false;
     function doneOnce (err) {
       if (!alreadyDone) {
