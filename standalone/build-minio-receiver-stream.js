@@ -144,7 +144,7 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     function doneOnce (err) {
       if (!alreadyDone) {
         alreadyDone = true;
-        done(err);
+        return done(err);
       }
     }
     outs__.on('E_EXCEEDS_UPLOAD_LIMIT', function (err) {

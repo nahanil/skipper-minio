@@ -54,7 +54,7 @@ module.exports = function SkipperMinio(options) {
     // Allow recursively deleting a 'folder' with a wildcard (fd = 'something/*')
     if (workingFd.substr(-2) === '/*') {
       adapter.ls(workingFd.substr(0, workingFd.length - 2), (err, files) => {
-        if (err) { return cb(err); };
+        if (err) { return cb(err); }
         if (!files.length) { return cb(); }
 
         var complete = 0;
