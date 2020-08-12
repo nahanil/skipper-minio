@@ -36,6 +36,7 @@ req.file('avatar')
   secretKey: 'ABCDEFGH123456789ABCDEFGH123456789',
   useSSL: false,
   maxBytes: 1024 * 1024,
+  maxBytesPerFile: 1024 * 1024 / 3,
 
   allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
   transformer: () => { return someDataModifyingPipeableToCropAvatars }

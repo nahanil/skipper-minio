@@ -70,7 +70,6 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
   }
   */
   __progress__.on('progress', function singleFileProgress(milestone) {
-
     // Lookup or create new object to track file progress
     var currentFileProgress = _.find(receiver__._files, {
       id: localID
@@ -110,9 +109,8 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
     // a progress bar, for example.
     receiver__.emit('progress', currentFileProgress);
 
-    // and then enforce its `maxBytes`.
-    if (options.maxBytes && totalBytesWritten >= options.maxBytes) {
-
+    // and then enforce its `maxBytes` and/or `maxBytesPerFile`.
+    if ((options.maxBytes && totalBytesWritten >= options.maxBytes) || (options.maxBytesPerFile && writtenSoFar >= options.maxBytesPerFile)) {
       var err = new Error();
       err.code = 'E_EXCEEDS_UPLOAD_LIMIT';
       err.name = 'Upload Error';
@@ -129,14 +127,6 @@ module.exports = function buildProgressStream (options, __newFile, receiver__, o
 
       // Clean up any files we've already written
       gc(options, adapter, err, __newFile, outs__);
-
-      return;
-
-      // Don't do this--it releases the underlying pipes, which confuses node when it's in the middle
-      // of a write operation.
-      // outs__.emit('error', err);
-      //
-      //
     }
   });
 
