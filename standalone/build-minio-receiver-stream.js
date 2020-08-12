@@ -64,6 +64,7 @@ module.exports = function buildDiskReceiverStream(minioClient, options, adapter)
     // Upload limit (in bytes)
     // defaults to ~15MB
     maxBytes: 15000000,
+    maxBytesPerFile: null,
 
     // Default to use AWS S3 so that those guys can enjoy super simple config
     endPoint: 's3.amazonaws.com',
