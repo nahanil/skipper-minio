@@ -7,6 +7,7 @@ before(function(done) {
     this.timeout(5000);
 
     sails.lift({
+      port: 7654,
       hooks: { grunt: false },
       log: { level: 'warn' },
       uploads: Object.assign({}, require('../options'), {
