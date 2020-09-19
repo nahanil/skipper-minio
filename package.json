@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "node ./node_modules/eslint/bin/eslint ./ --max-warnings=0",
-    "custom-tests": "node ./test/bootstrap.js",
-    "test": "npm run lint && npm run custom-tests"
+    "custom-tests": "mocha ./test/custom/bootstrap.js ./test/custom/**.test.js",
+    "acceptance-tests": "node ./test/acceptance/bootstrap.js",
+    "test": "npm run lint && npm run custom-tests && npm run acceptance-tests"
   },
   "repository": {
     "type": "git",
@@ -33,7 +34,11 @@
     "minio": "^7.0.5"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "eslint": "4.18.2",
+    "mocha": "^8.1.3",
+    "sails": "^1.3.1",
+    "sails-hook-uploads": "^0.4.3",
     "skipper-adapter-tests": "^1.5.8"
   }
 }
